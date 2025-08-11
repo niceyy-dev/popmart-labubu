@@ -1,8 +1,5 @@
 import * as mongoose from "mongoose";
 import { Schema, Document } from "mongoose";
-import { TitleProps } from "./title.model";
-import { ArtistProps } from "./artist.model";
-import { SubsProps } from "./subs.model";
 
 export interface UserProps {
   _id: string;
@@ -10,11 +7,6 @@ export interface UserProps {
   lastname: string;
   firstname: string;
   email: string;
-  banned: boolean;
-  like: TitleProps[];
-  follow: ArtistProps[];
-  subscription: SubsProps;
-  role: string;
   profile: string;
 }
 
@@ -24,7 +16,6 @@ const userSchema = new Schema(
   {
     address: {
       type: Schema.Types.String,
-      required: true,
       unique: true,
     },
     firstname: {
@@ -38,30 +29,6 @@ const userSchema = new Schema(
     email: {
       type: Schema.Types.String,
       // required: true,
-    },
-    banned: {
-      type: Schema.Types.Boolean,
-      default: false,
-    },
-    like: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Title",
-      },
-    ],
-    follow: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Artist",
-      },
-    ],
-    subscription: {
-      type: Schema.Types.ObjectId,
-      ref: "Subs",
-    },
-    role: {
-      type: Schema.Types.String,
-      default: "user",
     },
     profile: {
       type: Schema.Types.String,

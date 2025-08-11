@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 import express from "express";
 import path from "path";
 
-import {} from "./controllers";
+import { LabubuController, UserController } from "./controllers";
 
 async function startServer(): Promise<void> {
   await mongoose.connect(process.env.MONGO_URI, {
@@ -27,7 +27,8 @@ async function startServer(): Promise<void> {
   //   ); // Correct path to images
 
   app.use(bodyParser.json());
-  app.use("/album", AlbumController.getInstance().buildRouter());
+  app.use("/labubu", LabubuController.getInstance().buildRouter());
+  app.use("/user", UserController.getInstance().buildRouter());
   app.listen(process.env.PORT, async function () {
     await bootstrap();
     console.log("Server started on port " + process.env.PORT);

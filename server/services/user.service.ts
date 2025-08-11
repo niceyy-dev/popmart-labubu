@@ -1,7 +1,6 @@
-import { SubsModel, UserDocument, UserModel, UserProps } from "../models";
-import { ApiErrorCode } from "../api-error-code.enum";
+import { UserDocument, UserModel, UserProps } from "../models";
+import { ApiErrorCode } from "../utils/api-error-code.enum";
 import { Types, FilterQuery } from "mongoose";
-import { SubsService } from "./subs.service";
 
 export class UserService {
   private static instance: UserService;
@@ -57,17 +56,13 @@ export class UserService {
   }
 
   async updateUser(
-    address: string,
+    id: string,
     update: UserUpdate
   ): Promise<UserDocument | ApiErrorCode> {
     try {
-      const user = await UserModel.findOneAndUpdate(
-        {
-          address,
-        },
-        update,
-        { returnDocument: "after" }
-      );
+      const user = await UserModel.findByIdAndUpdate(id, update, {
+        returnDocument: "after",
+      });
       if (user === null) {
         return ApiErrorCode.notFound;
       }
@@ -93,15 +88,6 @@ export class UserService {
     if (search.email !== undefined) {
       filter.email = { $regex: search.email, $options: "i" };
     }
-    if (search.subscription !== undefined) {
-      filter.subscription = { $regex: search.subscription, $options: "i" };
-    }
-    if (search.role !== undefined) {
-      filter.role = { $regex: search.role, $options: "i" };
-    }
-    if (search.banned !== undefined) {
-      filter.banned = search.banned;
-    }
 
     const query = UserModel.find(filter);
 
@@ -114,67 +100,20 @@ export class UserService {
 
     return query.exec();
   }
-  async getUserByArtistAddress(address: string): Promise<UserDocument | null> {
-    try {
-      const user = await UserModel.findOne({ address }).select(
-        "address firstname lastname email subscription"
-      );
-      return user;
-    } catch (error) {
-      console.error("Error fetching user by artist address:", error);
-      return null;
-    }
-  }
-
-  async getUserByAddress(address: string): Promise<UserDocument | null> {
-    if (typeof address !== "string") {
-      return null;
-    }
-    const user = await UserModel.findOne({ address });
-    if (user === null) {
-      return null;
-    }
-    return user;
-  }
-
-  async isAddressSubscribed(address: string): Promise<boolean> {
-    if (typeof address !== "string") {
-      return null;
-    }
-    const user = await UserModel.findOne({ address });
-
-    if (user === null) {
-      return false;
-    }
-
-    const res = await SubsService.getInstance().isSubscribed(user._id);
-
-    if (res === null) {
-      return null;
-    }
-    return res;
-  }
 }
 
 export interface UserCreate {
-  readonly address: string;
-  readonly firstname: string;
-  readonly lastname: string;
-  readonly email: string;
-  readonly banned: boolean;
-  readonly like: string[];
-  readonly follow: string[];
-  readonly subscription: string;
-  readonly role: string;
+  readonly address?: string;
+  readonly firstname?: string;
+  readonly lastname?: string;
+  readonly email?: string;
+  readonly profile?: string;
 }
 export interface UserSearch {
   readonly address?: string;
   readonly firstname?: string;
   readonly lastname?: string;
   readonly email?: string;
-  readonly banned?: boolean;
-  readonly subscription?: string;
-  readonly role?: string;
   readonly limit?: number;
   readonly offset?: number;
 }
@@ -183,9 +122,5 @@ export interface UserUpdate {
   readonly firstname?: string;
   readonly lastname?: string;
   readonly email?: string;
-  readonly banned?: boolean;
-  readonly like?: string[];
-  readonly follow?: string[];
-  readonly subscription?: string;
-  readonly role?: string;
+  readonly profile?: string;
 }
