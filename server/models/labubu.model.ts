@@ -1,12 +1,13 @@
 import * as mongoose from "mongoose";
 import { Schema, Document } from "mongoose";
+import { UserProps } from "./user.model";
 
 export interface LabubuProps {
   _id: string;
   address: string;
   name: string;
   collection: string;
-  owner: string;
+  owner: string | UserProps;
   date: string;
   location: string;
   img: string;
@@ -32,10 +33,11 @@ const labubuSchema = new Schema(
     },
     name: {
       type: Schema.Types.String,
+      // unique: true,
       // required: true,
     },
     owner: {
-      type: Schema.Types.String,
+      type: Schema.Types.ObjectId,
       ref: "Users",
       // required: true,
     },

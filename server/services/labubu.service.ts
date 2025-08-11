@@ -1,6 +1,7 @@
 import { LabubuDocument, LabubuModel, LabubuProps } from "../models";
 import { ApiErrorCode } from "../utils/api-error-code.enum";
 import { Types, FilterQuery } from "mongoose";
+import { UserService } from "./user.service";
 
 export class LabubuService {
   private static instance: LabubuService;
@@ -22,7 +23,29 @@ export class LabubuService {
       if (exist) {
         return ApiErrorCode.alreadyExists;
       }
-      const model = new LabubuModel(create);
+      console.log("Creating Labubu with owner:", create.owner);
+      const owner = await UserService.getInstance().getOwnerByEmail(
+        create.owner
+      );
+
+      if (!owner) {
+        return ApiErrorCode.notFound;
+      }
+      const model = new LabubuModel({
+        address: create.address,
+        name: create.name,
+        collection: create.collection,
+        date: create.date,
+        owner,
+        location: create.location,
+        img: create.img,
+        rarity: create.rarity,
+        color: create.color,
+        description: create.description,
+        outofstock: create.outofstock,
+        hex: create.hex,
+        mystery: create.mystery,
+      });
       const labubu = await model.save();
       return labubu;
     } catch (err) {

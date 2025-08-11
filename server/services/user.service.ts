@@ -120,6 +120,14 @@ export class UserService {
     return users;
   }
 
+  async getOwnerByEmail(email: string): Promise<UserDocument | null> {
+    const owner = await UserModel.findOne({ email: email });
+    if (owner === null) {
+      return null;
+    }
+    return owner;
+  }
+
   async updateUser(
     id: string,
     update: UserUpdate

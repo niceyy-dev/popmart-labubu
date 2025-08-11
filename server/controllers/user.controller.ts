@@ -111,6 +111,15 @@ export class UserController {
 
     res.json(users);
   }
+  async getUserByEmail(req: Request, res: Response): Promise<void> {
+    const email = req.query.email as string;
+    const owner = await UserService.getInstance().getOwnerByEmail(email);
+    if (owner === null) {
+      res.status(404).end();
+      return;
+    }
+    res.json(owner);
+  }
 
   buildRouter(): Router {
     const router = Router();
@@ -121,7 +130,7 @@ export class UserController {
     router.delete("/:id", this.deleteUser.bind(this));
     router.get("/id/:id", this.getUserById.bind(this));
     router.post("/login", this.logIn.bind(this));
-
+    router.get("/email", this.getUserByEmail.bind(this));
     return router;
   }
 }
