@@ -1,5 +1,5 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
-import { AuthService } from "../services";
+import { UserService } from "../services";
 import { ApiErrorCode } from "../utils/api-error-code.enum";
 import { UserProps } from "../models";
 
@@ -26,7 +26,7 @@ export function checkUserConnected(): RequestHandler {
       return;
     }
     const token = parts[1];
-    const result = await AuthService.getInstance().getUserByToken(token);
+    const result = await UserService.getInstance().getUserByToken(token);
     if (
       result === ApiErrorCode.notFound ||
       result === ApiErrorCode.invalidParameters

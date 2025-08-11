@@ -7,6 +7,7 @@ import express from "express";
 import path from "path";
 
 import { LabubuController, UserController } from "./controllers";
+import { RoleController } from "./controllers/role.controller";
 
 async function startServer(): Promise<void> {
   await mongoose.connect(process.env.MONGO_URI, {
@@ -29,6 +30,7 @@ async function startServer(): Promise<void> {
   app.use(bodyParser.json());
   app.use("/labubu", LabubuController.getInstance().buildRouter());
   app.use("/user", UserController.getInstance().buildRouter());
+  app.use("/role", RoleController.getInstance().buildRouter());
   app.listen(process.env.PORT, async function () {
     await bootstrap();
     console.log("Server started on port " + process.env.PORT);

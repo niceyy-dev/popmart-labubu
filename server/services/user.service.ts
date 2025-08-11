@@ -1,6 +1,14 @@
-import { UserDocument, UserModel, UserProps } from "../models";
+import {
+  SessionDocument,
+  SessionModel,
+  UserDocument,
+  UserModel,
+  UserProps,
+} from "../models";
 import { ApiErrorCode } from "../utils/api-error-code.enum";
 import { Types, FilterQuery } from "mongoose";
+import { RoleService } from "./role.service";
+import { SecurityUtils } from "../utils";
 
 export class UserService {
   private static instance: UserService;
@@ -20,23 +28,69 @@ export class UserService {
       if (exist) {
         return ApiErrorCode.alreadyExists;
       }
-      const model = new UserModel(create);
+      const role = await RoleService.getInstance().getRoleByName(create.role);
+      if (!role) {
+        return ApiErrorCode.notFound;
+      }
+      const model = new UserModel({
+        address: create.address,
+        firstname: create.firstname,
+        lastname: create.lastname,
+        email: create.email,
+        password: SecurityUtils.sha256(create.password),
+        profile: create.profile,
+        role,
+      });
       const user = await model.save();
       return user;
     } catch (err) {
       return ApiErrorCode.invalidParameters;
     }
   }
-  async loginUser(email: string, password: string) {
-    // try {
-    //   const user = await UserModel.find({ email, password });
-    //   if (!user) {
-    //     return ApiErrorCode.notFound;
-    //   }
-    //   return user;
-    // } catch (err) {
-    //   return ApiErrorCode.invalidParameters;
-    // }
+
+  async logIn(log: UserLogIn): Promise<SessionDocument | ApiErrorCode> {
+    const user = await UserModel.findOne({
+      email: log.email,
+      password: SecurityUtils.sha256(log.password),
+    });
+    if (user === null) {
+      return ApiErrorCode.notFound;
+    }
+    const currentDate = new Date();
+    const expirationDate = new Date(currentDate.getTime() + 86_400_000 * 7);
+    const model = new SessionModel({
+      user: user._id,
+      platform: log.platform,
+      expirationDate: expirationDate,
+    });
+    const session = await model.save();
+    user.sessions.push(session._id);
+    await user.save();
+    return session;
+  }
+
+  async getUserByToken(token: string): Promise<UserProps | ApiErrorCode> {
+    if (!Types.ObjectId.isValid(token)) {
+      return ApiErrorCode.invalidParameters;
+    }
+    const session = await SessionModel.findOne({
+      _id: token,
+      expirationDate: {
+        $gte: new Date(),
+      },
+    }).populate({
+      path: "user",
+      populate: {
+        path: "role",
+        populate: {
+          path: "parent",
+        },
+      },
+    });
+    if (session === null) {
+      return ApiErrorCode.notFound;
+    }
+    return session.user as UserProps;
   }
 
   async deleteUser(id: string): Promise<ApiErrorCode> {
@@ -120,6 +174,7 @@ export interface UserCreate {
   readonly email?: string;
   readonly password?: string;
   readonly profile?: string;
+  readonly role?: string;
 }
 export interface UserSearch {
   readonly address?: string;
@@ -135,4 +190,10 @@ export interface UserUpdate {
   readonly lastname?: string;
   readonly email?: string;
   readonly profile?: string;
+}
+
+export interface UserLogIn {
+  email: string;
+  password: string;
+  platform?: string;
 }

@@ -5,7 +5,6 @@ export interface RoleProps {
   _id: string;
   name: string;
   accessList: string[];
-  parent: string | RoleProps;
 }
 
 export type RoleDocument = RoleProps & Document;
@@ -23,10 +22,6 @@ const roleSchema = new Schema(
         required: true,
       },
     ],
-    parent: {
-      type: Schema.Types.ObjectId,
-      ref: "Role",
-    },
   },
   {
     versionKey: false,

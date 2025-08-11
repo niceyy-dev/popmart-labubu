@@ -14,7 +14,6 @@ export function checkUserAccess(accessList: string[]): RequestHandler {
     let role = req.user.role as RoleProps;
     while (role) {
       userAccessList.push(...role.accessList);
-      role = role.parent as RoleProps;
     }
     for (let access of accessList) {
       if (userAccessList.indexOf(access) === -1) {

@@ -2,6 +2,7 @@ import { Request, Response, Router } from "express";
 import { UserService } from "../services";
 import { ApiErrorCode } from "../utils/api-error-code.enum";
 import * as express from "express";
+import { SessionProps } from "../models";
 
 export class UserController {
   private static instance: UserController;
@@ -27,6 +28,21 @@ export class UserController {
       return;
     }
     res.json(result);
+  }
+  async logIn(req: Request, res: Response): Promise<void> {
+    const data = req.body;
+    const session = await UserService.getInstance().logIn({
+      email: data.email,
+      password: data.password,
+      platform: req.headers["user-agent"],
+    });
+    if (session === ApiErrorCode.notFound) {
+      res.status(404).end();
+      return;
+    }
+    res.json({
+      token: (session as SessionProps)._id,
+    });
   }
 
   async updateUser(req: express.Request, res: express.Response) {
@@ -104,6 +120,7 @@ export class UserController {
     router.patch("/update/:id", this.updateUser.bind(this));
     router.delete("/:id", this.deleteUser.bind(this));
     router.get("/id/:id", this.getUserById.bind(this));
+    router.post("/login", this.logIn.bind(this));
 
     return router;
   }
