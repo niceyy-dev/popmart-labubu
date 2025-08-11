@@ -27,6 +27,17 @@ export class UserService {
       return ApiErrorCode.invalidParameters;
     }
   }
+  async loginUser(email: string, password: string) {
+    // try {
+    //   const user = await UserModel.find({ email, password });
+    //   if (!user) {
+    //     return ApiErrorCode.notFound;
+    //   }
+    //   return user;
+    // } catch (err) {
+    //   return ApiErrorCode.invalidParameters;
+    // }
+  }
 
   async deleteUser(id: string): Promise<ApiErrorCode> {
     if (!Types.ObjectId.isValid(id)) {
@@ -107,6 +118,7 @@ export interface UserCreate {
   readonly firstname?: string;
   readonly lastname?: string;
   readonly email?: string;
+  readonly password?: string;
   readonly profile?: string;
 }
 export interface UserSearch {
